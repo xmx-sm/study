@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>文件上传</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        .upload-section {
+            margin-bottom: 30px;
+        }
+        .progress-bar {
+            width: 100%;
+            background-color: #f3f3f3;
+            border: 1px solid #ccc;
+            margin-top: 10px;
+        }
+        .progress-bar-fill {
+            height: 20px;
+            background-color: #4caf50;
+            width: 0%;
+        }
+    </style>
+</head>
+<body>
+    <h1>文件上传</h1>
+
+    <div class="upload-section">
+        <h2>代收上传</h2>
+        <input type="file" id="fileInput1" multiple>
+        <button onclick="uploadFiles('fileInput1', 'backend1')">点击上传</button>
+        <div class="progress-bar">
+            <div class="progress-bar-fill" id="progressBar1"></div>
+        </div>
+    </div>
+
+    <div class="upload-section">
+        <h2>代付上传</h2>
+        <input type="file" id="fileInput2" multiple>
+        <button onclick="uploadFiles('fileInput2', 'backend2')">点击上传</button>
+        <div class="progress-bar">
+            <div class="progress-bar-fill" id="progressBar2"></div>
+        </div>
+    </div>
+
+    <script>
+        function uploadFiles(inputId, backend) {
+            const input = document.getElementById(inputId);
+            const files = input.files;
+            const progressBar = document.getElementById(`progressBar${backend === 'backend1' ? '1' : '2'}`);
+            const url = backend === 'backend1' ? '/shou/add/file' : '/fu/add/file';
+
+            if (files.length === 0) {
+                alert('请选择文件');
+                return;
+            }
+
+            const formData = new FormData();
+            for (let i = 0; i < files.length; i++) {
+                formData.append('file_list', files[i]);
+            }
+
+            const xhr = new XMLHttpRequest();
+            xhr.open('POST', url, true);
+
+            xhr.upload.onprogress = function (event) {
+                if (event.lengthComputable) {
+                    const percentComplete = (event.loaded / event.total) * 100;
+                    progressBar.style.width = percentComplete + '%';
+                }
+            };
+
+            xhr.onload = function () {
+                if (xhr.status === 200) {
+                    alert('上传成功');
+                    progressBar.style.width = '0%';
+                } else {
+                    alert('上传失败');
+                }
+            };
+
+            xhr.send(formData);
+        }
+    </script>
+</body>
+</html>

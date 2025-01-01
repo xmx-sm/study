@@ -12,7 +12,7 @@ templates = Jinja2Templates(directory="templates")
 app.include_router(shou,prefix="/shou",tags=["shou"])
 app.include_router(fu,prefix="/fu",tags=["fu"])
 
-@app.get("/file")
+@app.get("/file",tags=["file"])
 def add_file(request: Request):
 
     return templates.TemplateResponse(

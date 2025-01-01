@@ -30,17 +30,19 @@ def fu_add_file(file_list: List[UploadFile]):
 
 @app.get("/")
 async def shou_utr(request:Request,response:Response,utr : Optional[str] = None):
-    # response.set_cookie(key="cookie", value=datetime.now())
+    response.set_cookie(key="cookie", value=datetime.now())
     if utr == None:
         print("utr不能为空",utr)
-        return {"aaa": "utr不能为空"}
+        return {"aaa": "utr不能为空",
+                "cookie": request.cookies.get("cookie"),}
     else:
         print("utr",utr)
         shou = await Shou.filter(A08=utr)
         list_list = []
         for i in shou:
             list_list.append(f"{i.A08},{i.A01}")
-        return {"aaa": str(list_list),
+        return {"aaa": request.headers,
+                "cookie": request.cookies,
                 }
 # @app.post("/")
 # def shou_utr_post(utr : Utr):

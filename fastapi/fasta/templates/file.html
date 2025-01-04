@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>文件上传</title>
+    <title>双服务器文件上传</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -23,66 +23,178 @@
             background-color: #4caf50;
             width: 0%;
         }
+        .file-name-input {
+            margin-top: 5px;
+            width: calc(100% - 60px); /* 确保输入框有足够的空间 */
+        }
+        .file-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 10px;
+        }
+        .modal {
+            display: none; /* 默认隐藏模态框 */
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgb(0,0,0);
+            background-color: rgba(0,0,0,0.4);
+        }
+        .modal-content {
+            background-color: #fefefe;
+            margin: 15% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+            max-width: 500px;
+        }
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+        }
+        .close:hover,
+        .close:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
     </style>
 </head>
 <body>
-    <h1>文件上传</h1>
+    <h1>双服务器文件上传</h1>
 
+    <!-- 第一个文件上传区域 -->
     <div class="upload-section">
-        <h2>代收上传</h2>
-        <input type="file" id="fileInput1" multiple>
-        <button onclick="uploadFiles('fileInput1', 'backend1')">点击上传</button>
+        <h2>代收上传 (Server A)</h2>
+        <input type="file" id="fileInputA" multiple>
+        <button onclick="prepareUpload('fileInputA', 'backendA')">点击上传</button>
         <div class="progress-bar">
-            <div class="progress-bar-fill" id="progressBar1"></div>
+            <div class="progress-bar-fill" id="progressBarA"></div>
         </div>
     </div>
 
+    <!-- 第二个文件上传区域 -->
     <div class="upload-section">
-        <h2>代付上传</h2>
-        <input type="file" id="fileInput2" multiple>
-        <button onclick="uploadFiles('fileInput2', 'backend2')">点击上传</button>
+        <h2>代付上传 (Server B)</h2>
+        <input type="file" id="fileInputB" multiple>
+        <button onclick="prepareUpload('fileInputB', 'backendB')">点击上传</button>
         <div class="progress-bar">
-            <div class="progress-bar-fill" id="progressBar2"></div>
+            <div class="progress-bar-fill" id="progressBarB"></div>
+        </div>
+    </div>
+
+    <!-- 模态框（用于文件重命名） -->
+    <div id="renameModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <h2>为文件指定新名称</h2>
+            <form id="renameForm">
+                <!-- 文件信息将动态添加到这里 -->
+            </form>
+            <button onclick="submitRename()">确认并上传</button>
         </div>
     </div>
 
     <script>
-        function uploadFiles(inputId, backend) {
-            const input = document.getElementById(inputId);
-            const files = input.files;
-            const progressBar = document.getElementById(`progressBar${backend === 'backend1' ? '1' : '2'}`);
-            const url = backend === 'backend1' ? '/shou/add/file' : '/fu/add/file';
+        let currentBackend, currentInputId;
 
-            if (files.length === 0) {
+        // 函数：准备并开始上传文件
+        function prepareUpload(inputId, backend) {
+            const input = document.getElementById(inputId); // 获取文件输入元素
+            const files = input.files; // 获取用户选择的文件列表
+            if (files.length === 0) { // 如果没有选择文件，则提示用户并退出函数
                 alert('请选择文件');
                 return;
             }
 
-            const formData = new FormData();
+            // 构建表单内容以供模态框显示
+            let formContent = '';
             for (let i = 0; i < files.length; i++) {
-                formData.append('file_list', files[i]);
+                // 获取不带扩展名的文件名和文件扩展名
+                const fileNameWithoutExt = files[i].name.replace(/\.[^/.]+$/, "");
+                const fileExt = files[i].name.split('.').pop();
+                // 构建包含旧文件名和新文件名输入框的HTML
+                formContent += `<div class="file-info">
+                    <p>${files[i].name}</p>
+                    <input type="text" class="file-name-input" placeholder="请输入新文件名（不包括扩展名）" data-index="${i}" value="${fileNameWithoutExt}">
+                    <span>.${fileExt}</span>
+                </div>`;
             }
 
-            const xhr = new XMLHttpRequest();
-            xhr.open('POST', url, true);
+            // 将构建的内容插入到模态框中的表单内
+            document.getElementById('renameForm').innerHTML = formContent;
 
+            // 显示模态框
+            document.getElementById('renameModal').style.display = 'block';
+            currentBackend = backend; // 存储当前使用的后端标识符
+            currentInputId = inputId; // 存储当前使用的文件输入框ID
+        }
+
+        // 函数：关闭模态框
+        function closeModal() {
+            document.getElementById('renameModal').style.display = 'none';
+        }
+
+        // 函数：提交新文件名并开始上传
+        function submitRename() {
+            const newNames = Array.from(document.querySelectorAll('.file-name-input')).map((input, index) => {
+                const originalFileName = document.getElementById(currentInputId).files[index].name;
+                const originalFileExt = originalFileName.split('.').pop().toLowerCase(); // 获取原始文件扩展名，并转换为小写
+                const newNameWithoutExt = input.value.trim() || originalFileName.replace(/\.[^/.]+$/, ""); // 获取用户提供的新文件名或默认使用原文件名（去掉扩展名）
+                return {index, newName: `${newNameWithoutExt}.${originalFileExt}`}; // 返回对象，包含索引和新文件名（附带原始扩展名）
+            });
+
+            // 隐藏模态框
+            closeModal();
+
+            // 调用uploadFiles函数进行文件上传
+            uploadFiles(currentInputId, currentBackend, newNames);
+        }
+
+        // 函数：执行文件上传操作
+        function uploadFiles(inputId, backend, newNames) {
+            const input = document.getElementById(inputId); // 获取文件输入元素
+            const files = input.files; // 获取用户选择的文件列表
+            const progressBar = document.getElementById(`progressBar${inputId === 'fileInputA' ? 'A' : 'B'}`); // 获取对应的进度条元素
+            const url = backend === 'backendA' ? '/shou/add/file' : '/fu/add/file'; // 根据不同的后端设置上传URL
+
+            const formData = new FormData(); // 创建FormData对象以存储文件和数据
+
+            // 使用用户提供的新文件名创建新的Blob对象，并将其添加到FormData中
+            for (let i = 0; i < files.length; i++) {
+                const blob = new Blob([files[i]], {type: files[i].type});
+                formData.append('file_list', blob, newNames.find(name => name.index === i).newName); // 使用新文件名
+            }
+
+            const xhr = new XMLHttpRequest(); // 创建XMLHttpRequest对象用于发送HTTP请求
+            xhr.open('POST', url, true); // 配置请求方法、URL和是否异步
+
+            // 监听上传进度事件
             xhr.upload.onprogress = function (event) {
-                if (event.lengthComputable) {
-                    const percentComplete = (event.loaded / event.total) * 100;
-                    progressBar.style.width = percentComplete + '%';
+                if (event.lengthComputable) { // 如果可以计算进度
+                    const percentComplete = (event.loaded / event.total) * 100; // 计算已完成的百分比
+                    progressBar.style.width = percentComplete + '%'; // 更新进度条宽度
                 }
             };
 
+            // 监听请求完成事件
             xhr.onload = function () {
-                if (xhr.status === 200) {
+                if (xhr.status === 200) { // 如果请求成功
                     alert('上传成功');
-                    progressBar.style.width = '0%';
-                } else {
+                    progressBar.style.width = '0%'; // 重置进度条
+                } else { // 如果请求失败
                     alert('上传失败');
                 }
             };
 
-            xhr.send(formData);
+            xhr.send(formData); // 发送请求并上传文件
         }
     </script>
 </body>

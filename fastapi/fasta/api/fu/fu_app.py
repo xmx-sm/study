@@ -5,12 +5,12 @@ from typing import List
 from typing import Union,Optional
 from fastapi.templating import Jinja2Templates
 
-app = APIRouter()
+fu_app = APIRouter()
 templates = Jinja2Templates(directory="fu/templates")
 
 filr_path = "fu/代付"
 # file_path = os.path.join("imgs", 'file.filename')
-@app.post("/add/file")
+@fu_app.post("/add/file")
 def fu_add_file(file_list: List[UploadFile]):
     file_list_name = []
     """上传文件"""
@@ -27,7 +27,7 @@ def fu_add_file(file_list: List[UploadFile]):
         "msg": "上传成功",
         "data": file_list_name
     }
-@app.get("/")
+@fu_app.get("/")
 def fu_utr(request : Request,utr : Optional[str] = None,):
     if utr == None:
         return {"utr": "utr不能为空"}

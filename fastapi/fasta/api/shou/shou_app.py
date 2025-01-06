@@ -5,7 +5,7 @@ from typing import List
 from typing import Union,Optional
 from fastapi.responses import JSONResponse
 from datetime import datetime
-from models import DaiShou,excel_name
+from models import DaiShou,excel_data,Shou_model
 from tortoise.queryset import Q
 from fastapi.templating import Jinja2Templates
 
@@ -14,8 +14,12 @@ from fastapi.templating import Jinja2Templates
 
 shou_app = APIRouter()
 
-filr_path = "shou/代收"
-#文件相关操作
+filr_path = "api/shou/代收"
+
+async def insert_sql(data):
+    data = [Shou_model(**data_json) for data_json in data]
+
+    await DaiShou.bulk_create(data)
 @shou_app.post("/add/file")
 def fu_add_file(file_list: List[UploadFile]):
     file_list_name = []
@@ -44,9 +48,9 @@ async def shou_time(card_id : Optional[str] = None,date_time : Optional[str] = N
     else:
         conditions_check = []
         if card_id != None:
-            conditions_check.append(Q(card_id=card_id))
+            conditions_check.append(Q(card_id__icontains=card_id))
         if date_time != None:
-            conditions_check.append(Q(date_time=date_time))
+            conditions_check.append(Q(date_time__icontains=date_time))
         query = Q()
         for condition in conditions_check:
             query &= condition
@@ -63,11 +67,44 @@ async def shou_utr_id(utr_id : str):
         "aaa": data_utr
         }
 #插入数据
-@shou_app.post("/")
-async def shou_add():
-
+# @shou_app.post("/")
+# async def shou_add(data : Union[str,List[Shou_model]] = None):
+#     #单条插入
+#     # await DaiShou.create(utr="123",card_id="123",date_time="123")
+#     # await DaiShou.bulk_create()
+#     return {
+#         "aaa": "插入成功"
+#         }
+@shou_app.get("/insert")
+async def shou_insert():
+    file_path = "api/shou/代收"
+    name_list = os.listdir(file_path)
+    list_list = []
+    for file_name in name_list:
+        # print(file_name)
+        if file_name.endswith(".xlsx"):
+            pass
+        elif file_name.endswith(".xls"):
+            pass
+            # excel_data.xls_revise(file_path,file_name)
+        elif file_name.endswith(".csv"):
+            excel_data.csv_revise(file_path,file_name)
+    for file_name in name_list:
+        if file_name.endswith(".xlsx"):
+            # print(file_name)
+            data_shou = excel_data.excel_read_data(file_path,file_name)
+            await insert_sql(data_shou)
     return {
-        "aaa": "插入数据"
+        "aaa": data_shou
+        }
+    # data = excel_data().excel_read_data()
+    # data : Union[str,List[Shou_model]]
+
+    #单条插入
+    # await DaiShou.create(utr="123",card_id="123",date_time="123")
+    # await DaiShou.bulk_create()
+    return {
+        "aaa": "插入成功"
         }
 
 @shou_app.put("/{utr_id}")
@@ -80,9 +117,6 @@ def shou_utr_delete(utr_id : str):
     return {
         "aaa": "删除指定数据"
         }
-
-
-
 
 @shou_app.get("/index")
 async def getall(request : Request):

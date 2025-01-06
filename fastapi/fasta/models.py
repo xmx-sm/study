@@ -1,14 +1,54 @@
 from tortoise import Model
 from tortoise import fields #字段
-from typing import Union, Optional,List
-from pydantic import BaseModel, Field
-import pandas as pd,json
-# class excel(BaseModel):
-#     birth: Union[str, None] = None
-#     friends: List[int] = []
-#     description: Optional[str] = None
+from typing import Union, Optional,List,Any, ClassVar
+from pydantic import BaseModel, Field,field_validator,model_validator
+import pandas as pd,json,os
+from datetime import datetime
+import uuid,time
 
-class excel_name():
+class Shou_model(BaseModel):
+    _custom_generated_pk: str = None  # 初始化为 None
+    utr : Optional[str] = None
+    date_time : Union[str, None] = None
+    card_id : Union[str, None] = None
+    AA1 : Union[str, None] = None
+    AA2 : Union[str, None] = None
+    AA3 : Union[str, None] = None
+    AA4 : Union[str, None] = None
+    AA5 : Union[str, None] = None
+    AA6 : Union[str, None] = None
+    AA7 : Union[str, None] = None
+    AA8 : Union[str, None] = None
+    AA9 : Union[str, None] = None
+    AA10 : Union[str, None] = None
+    AA11 : Union[str, None] = None
+    AA12 : Union[str, None] = None
+    AA13 : Union[str, None] = None
+    AA14 : Union[str, None] = None
+    AA15 : Union[str, None] = None
+    AA16 : Union[str, None] = None
+    AA17 : Union[str, None] = None
+    AA18 : Union[str, None] = None
+    AA19 : Union[str, None] = None
+    AA20 : Union[str, None] = None
+    AA21 : Union[str, None] = None
+    AA22 : Union[str, None] = None
+    AA23 : Union[str, None] = None
+    AA24 : Union[str, None] = None
+
+    fields_to_convert: ClassVar[List[str]] = ['utr', 'date_time', 'card_id','AA1','AA2','AA3','AA4','AA5','AA6','AA7','AA8','AA9','AA10','AA11','AA12','AA13','AA14','AA15','AA16','AA17','AA18','AA19','AA20','AA21','AA22','AA23','AA24']
+    # @model_validator(mode='before')
+    # def generate_custom_pk(cls, values: dict) -> dict:
+    #     if '_custom_generated_pk' not in values:
+    #         values['_custom_generated_pk'] = str(uuid.uuid4())  # 生成 UUID 作为自定义主键
+    #     return values
+    @field_validator(*fields_to_convert, mode='before')
+    def convert_to_string(cls, v: Any) -> str:
+        if v is not None:
+            return str(v)
+        return ""
+
+class excel_data():
     def xlsx_revise(file_path,file_name):
         print(file_path)
         df = pd.read_excel(str(file_path) + '/' + str(file_name))
@@ -27,6 +67,7 @@ class excel_name():
         df.rename(columns=new_name,inplace=True)
         file_new_name = str(file_name).split('.')[0] + '.xlsx'
         df.to_excel(str(file_path) + '/' + str(file_new_name),index=False)
+        os.remove(str(file_path) + '/' + str(file_name))
     def xls_revise(file_path,file_name):
         df = pd.read_excel(str(file_path) + '/' + str(file_name), engine='xlrd')
         old_name = df.columns.to_list()
@@ -36,10 +77,34 @@ class excel_name():
         df.rename(columns=new_name,inplace=True)
         file_new_name = str(file_name).split('.')[0] + '.xlsx'
         df.to_excel(str(file_path) + '/' + str(file_new_name),index=False)
+        os.remove(str(file_path) + '/' + str(file_name))
+    def excel_read_data(file_path,file_name):
+        df = pd.read_excel(str(file_path) + '/' + str(file_name))
+        data = df.to_json(orient='records')
+        data_json = json.loads(data)
+        file_name_sp = str(file_name).split('.')[0]
+        file_new_name = file_name_sp.split('-')
+        # print(len(data_json))
+        if file_new_name[0] == 'BOM':
+            for i in range(len(data_json)):
+                # print(data_json[i])
+                data_json[i]['utr'] = data_json[i]["AA3"]
+                data_json[i]['date_time'] = str(datetime.now())
+                data_json[i]['card_id'] = str(file_new_name[0])+str(file_new_name[1])
+            # print(data_json[55]['utr'])
+        elif file_new_name[0] == 'IOB':
+            for i in range(len(data_json)):
+                data_json[i]['utr'] = data_json[i]["AA3"]
+                data_json[i]['date_time'] = str(datetime.now())
+                data_json[i]['card_id'] = str(file_new_name[0])+str(file_new_name[1])
+            # print(data_json[55]['utr'])
+
+        # print(data_json[55])
+        return data_json
 
 
 class DaiShou(Model):
-    id = fields.IntField(pk=True,description='id')
+    # id = fields.IntField(pk = True)
     utr = fields.TextField(description='utr',null=True, default=None)
     date_time = fields.TextField(description='date_time',null=True, default=None)
     card_id = fields.TextField(description='card_id',null=True, default=None)
@@ -77,6 +142,7 @@ class DaiShou(Model):
 
 
 class DaiFu(Model):
+    # id = fields.IntEnumField((time.time)*1000,pk = True)
     id = fields.IntField(description='id',pk=True)
     utr = fields.TextField(description='utr',default='')
     date_time = fields.TextField(description='date_time')
@@ -86,8 +152,11 @@ class DaiFu(Model):
 
 
 class RiZhi(Model):
+    # id = fields.IntEnumField((time.time)*1000,pk = True)
     card_id = fields.TextField(description='编号')
     date_day = fields.TextField(description='日期')
     date_time = fields.TextField(description='上传时间')
     status = fields.TextField(description='状态')
 
+if __name__ == '__main__':
+    print(datetime.now())

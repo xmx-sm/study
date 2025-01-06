@@ -1,7 +1,7 @@
 from fastapi import APIRouter,UploadFile,Request,Response
 import os
 from typing import List
-from models import Utr,Shou
+# from models import Utr,Shou
 from typing import Union,Optional
 from fastapi.responses import JSONResponse
 from datetime import datetime

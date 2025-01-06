@@ -1,7 +1,7 @@
 from fastapi import APIRouter,UploadFile,Request
 import os
 from typing import List
-from models import Utr
+# from models import Utr
 from typing import Union,Optional
 from fastapi.templating import Jinja2Templates
 

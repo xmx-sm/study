@@ -5,8 +5,10 @@ from typing import List
 from typing import Union,Optional
 from fastapi.responses import JSONResponse
 from datetime import datetime
-from models import DaiShou
+from models import DaiShou,excel_name
 from tortoise.queryset import Q
+from fastapi.templating import Jinja2Templates
+
 # from tortoise import Tortoise, fields, run_async
 
 
@@ -62,13 +64,14 @@ async def shou_utr_id(utr_id : str):
         }
 #插入数据
 @shou_app.post("/")
-def shou_add():
+async def shou_add():
+
     return {
         "aaa": "插入数据"
         }
 
 @shou_app.put("/{utr_id}")
-def shou_utr_put(utr_id : str):
+async def shou_utr_put(utr_id : str):
     return {
         "aaa": "修改指定数据"
         }
@@ -77,6 +80,39 @@ def shou_utr_delete(utr_id : str):
     return {
         "aaa": "删除指定数据"
         }
+
+
+
+
+@shou_app.get("/index")
+async def getall(request : Request):
+    templates = Jinja2Templates(directory="templates")
+    data = await DaiShou.all()
+    return templates.TemplateResponse(
+        "测试.html",
+        {
+            "request": request,
+            "data_utr": data
+        },
+    )
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 # @app.get("/")
 # async def shou_utr(request:Request,response:Response,utr : Optional[str] = None):

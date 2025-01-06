@@ -86,21 +86,24 @@ class excel_data():
         file_new_name = file_name_sp.split('-')
         # print(len(data_json))
         if file_new_name[0] == 'BOM':
+            datetime_time = datetime.now()
             for i in range(len(data_json)):
                 # print(data_json[i])
                 data_json[i]['utr'] = data_json[i]["AA3"]
-                data_json[i]['date_time'] = str(datetime.now())
+                data_json[i]['date_time'] = datetime_time
                 data_json[i]['card_id'] = str(file_new_name[0])+str(file_new_name[1])
-            # print(data_json[55]['utr'])
+
         elif file_new_name[0] == 'IOB':
+            datetime_time = datetime.now()
             for i in range(len(data_json)):
                 data_json[i]['utr'] = data_json[i]["AA3"]
-                data_json[i]['date_time'] = str(datetime.now())
+                data_json[i]['date_time'] = datetime_time
                 data_json[i]['card_id'] = str(file_new_name[0])+str(file_new_name[1])
-            # print(data_json[55]['utr'])
+        else:
+            for i in range(len(data_json)):
+                data_json[i]['card_id'] = str(file_new_name[0])+str(file_new_name[1])
 
-        # print(data_json[55])
-        return data_json
+        return data_json,file_new_name[2]
 
 
 class DaiShou(Model):

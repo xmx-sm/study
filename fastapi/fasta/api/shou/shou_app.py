@@ -5,7 +5,7 @@ from typing import List
 from typing import Union,Optional
 from fastapi.responses import JSONResponse
 from datetime import datetime
-from models import DaiShou,excel_data,Shou_model
+from models import DaiShou,excel_data,Shou_model,RiZhi
 from tortoise.queryset import Q
 from fastapi.templating import Jinja2Templates
 
@@ -16,10 +16,12 @@ shou_app = APIRouter()
 
 filr_path = "api/shou/代收"
 
-async def insert_sql(data):
+async def insert_sql(data,data_day):
     data = [Shou_model(**data_json) for data_json in data]
 
     await DaiShou.bulk_create(data)
+    await RiZhi.create(card_id=str(data[0].card_id),date_day=str(data_day),date_time=str(data[0].date_time),status = "代收成功")
+
 @shou_app.post("/add/file")
 def fu_add_file(file_list: List[UploadFile]):
     file_list_name = []
@@ -81,19 +83,23 @@ async def shou_insert():
     name_list = os.listdir(file_path)
     list_list = []
     for file_name in name_list:
-        # print(file_name)
         if file_name.endswith(".xlsx"):
             pass
         elif file_name.endswith(".xls"):
             pass
-            # excel_data.xls_revise(file_path,file_name)
         elif file_name.endswith(".csv"):
             excel_data.csv_revise(file_path,file_name)
     for file_name in name_list:
-        if file_name.endswith(".xlsx"):
-            # print(file_name)
-            data_shou = excel_data.excel_read_data(file_path,file_name)
-            await insert_sql(data_shou)
+        try:
+            if file_name.endswith(".xlsx"):
+                data_shou,data_day = excel_data.excel_read_data(file_path,file_name)
+                print(data_shou[55])
+                await insert_sql(data_shou,data_day)
+                os.remove(file_path+"/"+file_name)
+        except:
+            file_name = file_name.split('.')[0].split('-')
+            await RiZhi.create(card_id=str(file_name[0]),date_day=str(file_name[1]),date_time = str(datetime.now()),status = "代收失败")
+
     return {
         "aaa": data_shou
         }
@@ -103,9 +109,9 @@ async def shou_insert():
     #单条插入
     # await DaiShou.create(utr="123",card_id="123",date_time="123")
     # await DaiShou.bulk_create()
-    return {
-        "aaa": "插入成功"
-        }
+    # return {
+    #     "aaa": "插入成功"
+    #     }
 
 @shou_app.put("/{utr_id}")
 async def shou_utr_put(utr_id : str):

@@ -84,24 +84,24 @@ async def shou_insert():
     list_list = []
     for file_name in name_list:
         if file_name.endswith(".xlsx"):
-            pass
+            excel_data.xlsx_revise(file_path,file_name)
         elif file_name.endswith(".xls"):
-            pass
+            excel_data.xls_revise(file_path,file_name)
         elif file_name.endswith(".csv"):
             excel_data.csv_revise(file_path,file_name)
     for file_name in name_list:
         try:
             if file_name.endswith(".xlsx"):
                 data_shou,data_day = excel_data.excel_read_data(file_path,file_name)
-                print(data_shou[55])
+                # print('.......................................')
                 await insert_sql(data_shou,data_day)
                 os.remove(file_path+"/"+file_name)
         except:
             file_name = file_name.split('.')[0].split('-')
-            await RiZhi.create(card_id=str(file_name[0]),date_day=str(file_name[1]),date_time = str(datetime.now()),status = "代收失败")
+            await RiZhi.create(card_id=str(file_name[0])+str(file_name[1]),date_day=str(file_name[1]),date_time = str(datetime.now()),status = "代收失败")
 
     return {
-        "aaa": data_shou
+        "aaa": 'data_shou'
         }
     # data = excel_data().excel_read_data()
     # data : Union[str,List[Shou_model]]

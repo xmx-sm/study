@@ -1,22 +1,74 @@
-from fastapi import APIRouter,UploadFile,Request
-import os
+# from fastapi import APIRouter,UploadFile,Request
+# import os
+# from typing import List
+# # from models import Utr
+# from typing import Union,Optional
+# from fastapi.templating import Jinja2Templates
+
+# fu_app = APIRouter()
+# templates = Jinja2Templates(directory="fu/templates")
+
+# filr_path = "fu/代付"
+# # file_path = os.path.join("imgs", 'file.filename')
+# @fu_app.post("/add/file")
+# def fu_add_file(file_list: List[UploadFile]):
+#     file_list_name = []
+#     """上传文件"""
+#     for file in file_list:
+#         file_path = os.path.join(filr_path, file.filename)
+#         print(file_path)
+#         with open(file_path, "wb") as f:
+#             # 写入文件 片段
+#             for file_fragment in file.file:
+#                 f.write(file_fragment)
+#         file_list_name.append(file.filename)
+#     return {
+#         "code": 200,
+#         "msg": "上传成功",
+#         "data": file_list_name
+#     }
+# @fu_app.get("/")
+# def fu_utr(request : Request,utr : Optional[str] = None,):
+#     if utr == None:
+#         return {"utr": "utr不能为空"}
+#     else:
+#         return templates.TemplateResponse(
+#             "utr.html",
+#             {
+#                 "request": request,
+#                 "utr": utr,
+#             },
+#         )
+from fastapi import APIRouter,UploadFile,Request,Response
+import os,asyncio
 from typing import List
-# from models import Utr
+# from models import Utr,Shou
 from typing import Union,Optional
+from fastapi.responses import JSONResponse
+from datetime import datetime
+from models import DaiFu,excel_data,Fu_model,RiZhi
+from tortoise.queryset import Q
 from fastapi.templating import Jinja2Templates
 
-fu_app = APIRouter()
-templates = Jinja2Templates(directory="fu/templates")
+# from tortoise import Tortoise, fields, run_async
 
-filr_path = "fu/代付"
-# file_path = os.path.join("imgs", 'file.filename')
+
+fu_app = APIRouter()
+
+filr_path = "api/fu/代付"
+
+async def insert_sql(data,data_day):
+    data = [Fu_model(**data_json) for data_json in data]
+
+    await DaiFu.bulk_create(data)
+    await RiZhi.create(card_id=str(data[0].card_id),date_day=str(data_day),date_time=str(data[0].date_time),status = "代付成功")
+
 @fu_app.post("/add/file")
 def fu_add_file(file_list: List[UploadFile]):
     file_list_name = []
     """上传文件"""
     for file in file_list:
         file_path = os.path.join(filr_path, file.filename)
-        print(file_path)
         with open(file_path, "wb") as f:
             # 写入文件 片段
             for file_fragment in file.file:
@@ -27,15 +79,107 @@ def fu_add_file(file_list: List[UploadFile]):
         "msg": "上传成功",
         "data": file_list_name
     }
-@fu_app.get("/")
-def fu_utr(request : Request,utr : Optional[str] = None,):
-    if utr == None:
-        return {"utr": "utr不能为空"}
+#查询相关操作
+#根据时间，卡号查询
+@fu_app.get("/check")
+async def fu_time(card_id : Optional[str] = None,date_time : Optional[str] = None):
+    #查询条件
+    if card_id == None and date_time == None:
+        data = await DaiFu.all()# 查询所有数据 QuerySet: 查询集
+        print(data[0].date_time)
+        return {"aaa": data}
     else:
-        return templates.TemplateResponse(
-            "utr.html",
-            {
-                "request": request,
-                "utr": utr,
-            },
-        )
+        conditions_check = []
+        if card_id != None:
+            conditions_check.append(Q(card_id__icontains=card_id))
+        if date_time != None:
+            conditions_check.append(Q(date_time__icontains=date_time))
+        query = Q()
+        for condition in conditions_check:
+            query &= condition
+        data = await DaiFu.filter(query)
+        return {"date": data}
+
+#根据utr进行查询
+@fu_app.get("/utr/{utr_id}")
+async def fu_utr_id(utr_id : str):
+    data_utr = await DaiFu.filter(
+        utr__icontains=utr_id
+    )
+    return {
+        "aaa": data_utr
+        }
+#插入数据
+# @shou_app.post("/")
+# async def shou_add(data : Union[str,List[Shou_model]] = None):
+#     #单条插入
+#     # await DaiShou.create(utr="123",card_id="123",date_time="123")
+#     # await DaiShou.bulk_create()
+#     return {
+#         "aaa": "插入成功"
+#         }
+@fu_app.get("/insert")
+async def fu_insert():
+    file_path = "api/fu/代付"
+    name_list = os.listdir(file_path)
+    list_list = []
+    for file_name in name_list:
+        if file_name.endswith(".xlsx"):
+            excel_data.xlsx_revise(file_path,file_name)
+        elif file_name.endswith(".xls"):
+            excel_data.xls_revise(file_path,file_name)
+        elif file_name.endswith(".csv"):
+            excel_data.csv_revise(file_path,file_name)
+    for file_name in name_list:
+        try:
+            if file_name.endswith(".xlsx"):
+                data_fu,data_day = excel_data.excel_read_data(file_path,file_name)
+                # print(data_fu[55])
+                await insert_sql(data_fu,data_day)
+                os.remove(file_path+"/"+file_name)
+        except:
+            file_name = file_name.split('.')[0].split('-')
+            await RiZhi.create(card_id=str(file_name[0])+str(file_name[1]),date_day=str(file_name[1]),date_time = str(datetime.now()),status = "代付失败")
+
+    return {
+        "aaa": 'data_fu'
+        }
+    # data = excel_data().excel_read_data()
+    # data : Union[str,List[Shou_model]]
+
+    #单条插入
+    # await DaiShou.create(utr="123",card_id="123",date_time="123")
+    # await DaiShou.bulk_create()
+    # return {
+    #     "aaa": "插入成功"
+    #     }
+
+@fu_app.put("/{utr_id}")
+async def fu_utr_put(utr_id : str):
+    return {
+        "aaa": "修改指定数据"
+        }
+@fu_app.delete("/{utr_id}")
+def fu_utr_delete(utr_id : str):
+    return {
+        "aaa": "删除指定数据"
+        }
+
+@fu_app.get("/index")
+async def getall(request : Request):
+    templates = Jinja2Templates(directory="templates")
+    data = await DaiFu.all()
+    return templates.TemplateResponse(
+        "测试.html",
+        {
+            "request": request,
+            "data_utr": data
+        },
+    )
+
+
+
+
+
+
+

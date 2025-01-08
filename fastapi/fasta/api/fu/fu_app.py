@@ -54,7 +54,7 @@ from fastapi.templating import Jinja2Templates
 
 
 fu_app = APIRouter()
-
+templates = Jinja2Templates(directory="templates")
 filr_path = "api/fu/代付"
 
 async def insert_sql(data,data_day):
@@ -62,7 +62,14 @@ async def insert_sql(data,data_day):
 
     await DaiFu.bulk_create(data)
     await RiZhi.create(card_id=str(data[0].card_id),date_day=str(data_day),date_time=str(data[0].date_time),status = "代付成功")
-
+@fu_app.get("/")
+async def fu(request: Request):
+    return templates.TemplateResponse(
+        "fu.html",
+        {
+            "request": request,
+        },
+    )
 @fu_app.post("/add/file")
 def fu_add_file(file_list: List[UploadFile]):
     file_list_name = []
@@ -82,12 +89,29 @@ def fu_add_file(file_list: List[UploadFile]):
 #查询相关操作
 #根据时间，卡号查询
 @fu_app.get("/check")
-async def fu_time(card_id : Optional[str] = None,date_time : Optional[str] = None):
+async def fu_time(request: Request,card_id : Optional[str] = None,date_time : Optional[str] = None,utr_id : Optional[str] = None):
     #查询条件
-    if card_id == None and date_time == None:
+    if card_id == None and date_time == None and utr_id == None:
         data = await DaiFu.all()# 查询所有数据 QuerySet: 查询集
         print(data[0].date_time)
-        return {"aaa": data}
+        return templates.TemplateResponse(
+            "fu.html",
+            {"data_list": data,
+             "request": request,
+             }
+        )
+    elif utr_id != None:
+        data_utr = await DaiFu.filter(
+            utr__icontains=utr_id
+        )
+        # print(data_utr[0].AA1)
+        return templates.TemplateResponse(
+            "fu.html",
+            {
+                "request": request,
+                "data_list": data_utr
+            },
+        )
     else:
         conditions_check = []
         if card_id != None:
@@ -98,26 +122,29 @@ async def fu_time(card_id : Optional[str] = None,date_time : Optional[str] = Non
         for condition in conditions_check:
             query &= condition
         data = await DaiFu.filter(query)
-        return {"date": data}
-
+        return templates.TemplateResponse(
+            "fu.html",
+            {"data_list": data,
+             "request": request,
+             }
+        )
 #根据utr进行查询
 @fu_app.get("/utr/{utr_id}")
-async def fu_utr_id(utr_id : str):
-    data_utr = await DaiFu.filter(
-        utr__icontains=utr_id
+async def fu_utr_id(request: Request,utr_id : str = None):
+    if utr_id == None:
+        return templates.TemplateResponse(
+        "fu.html",
+        {
+            "request": request,
+        },
     )
-    return {
-        "aaa": data_utr
-        }
-#插入数据
-# @shou_app.post("/")
-# async def shou_add(data : Union[str,List[Shou_model]] = None):
-#     #单条插入
-#     # await DaiShou.create(utr="123",card_id="123",date_time="123")
-#     # await DaiShou.bulk_create()
-#     return {
-#         "aaa": "插入成功"
-#         }
+    else:
+        data_utr = await DaiFu.filter(
+            utr__icontains=utr_id
+        )
+        # print(data_utr[0].AA1)
+        return data_utr
+
 @fu_app.get("/insert")
 async def fu_insert():
     file_path = "api/fu/代付"
@@ -142,17 +169,9 @@ async def fu_insert():
             await RiZhi.create(card_id=str(file_name[0])+str(file_name[1]),date_day=str(file_name[1]),date_time = str(datetime.now()),status = "代付失败")
 
     return {
-        "aaa": 'data_fu'
+        "aaa": '代付写入完成'
         }
-    # data = excel_data().excel_read_data()
-    # data : Union[str,List[Shou_model]]
 
-    #单条插入
-    # await DaiShou.create(utr="123",card_id="123",date_time="123")
-    # await DaiShou.bulk_create()
-    # return {
-    #     "aaa": "插入成功"
-    #     }
 
 @fu_app.put("/{utr_id}")
 async def fu_utr_put(utr_id : str):
@@ -164,18 +183,6 @@ def fu_utr_delete(utr_id : str):
     return {
         "aaa": "删除指定数据"
         }
-
-@fu_app.get("/index")
-async def getall(request : Request):
-    templates = Jinja2Templates(directory="templates")
-    data = await DaiFu.all()
-    return templates.TemplateResponse(
-        "测试.html",
-        {
-            "request": request,
-            "data_utr": data
-        },
-    )
 
 
 

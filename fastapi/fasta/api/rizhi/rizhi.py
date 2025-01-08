@@ -15,7 +15,7 @@ async def shou_time(card_id : Optional[str] = None,date_day : Optional[str] = No
     if card_id == None and date_day == None:
         data = await RiZhi.all()# 查询所有数据 QuerySet: 查询集
         print(data[0].date_time)
-        return {"aaa": data}
+        return {"data": data}
     else:
         conditions_check = []
         if card_id != None:

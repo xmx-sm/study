@@ -202,7 +202,7 @@ class excel_data():
         file_name_sp = str(file_name).split('.')[0]
         file_new_name = file_name_sp.split('-')
         # print(len(data_json))
-        if file_new_name[0] == 'BOM':
+        if file_new_name[0].casefold() == 'BOM'.casefold():
             datetime_time = datetime.now()
             for i in range(len(data_json)):
                 # print(data_json[i])
@@ -210,7 +210,7 @@ class excel_data():
                 data_json[i]['date_time'] = datetime_time
                 data_json[i]['card_id'] = str(file_new_name[0])+str(file_new_name[1])
 
-        elif file_new_name[0] == 'IOB':
+        elif file_new_name[0].casefold() == 'IOB'.casefold():
             datetime_time = datetime.now()
             for i in range(len(data_json)):
                 data_json[i]['utr'] = data_json[i]["AA3"]

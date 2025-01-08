@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>查询结果</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        .bordered {
+            border: 2px solid black;
+            padding: 10px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+        }
+        .data-column {
+            width: 48%;
+        }
+        .data-item {
+            margin: 5px 0;
+        }
+    </style>
+</head>
+<body>
+    <h2>查询</h2>
+    
+    <form action="/fu/check" method="get">
+        utr
+        <input type="text" name="utr" value="">
+        <button type="submit">查询</button>
+      </form>
+      
+      <!-- <script>
+      document.getElementById('utr_id').addEventListener('submit', function(event) {
+        event.preventDefault(); // 阻止表单默认提交行为
+      
+        const paramValue = encodeURIComponent(document.getElementById('utr_id').value);
+        const url = `/fu/utr/${utr_id}`;
+      
+        // 选择一种方法：重定向或使用fetch进行异步请求
+        // 方法1: 页面重定向
+        window.location.href = url;
+      
+        // 或者 方法2: 使用fetch API发起异步请求
+        /*
+        fetch(url)
+          .then(response => response.json())
+          .then(data => console.log(data))
+          .catch(error => console.error('Error:', error));
+        */
+      });
+      </script> -->
+<form action="/fu/check" method="get">
+    卡id
+    <input type="text" name ="card_id" value="">
+    时间
+    <input type="text" name ="date_time" value="">
+    <button type="submit">条件查询</button>
+</form>
+
+    {% for data in data_list|default([]) %}
+    <div class="bordered">
+        <div class="data-column">
+            {% for i in range(1, 14) %}
+            <p class="data-item">{{ data['AA{:02d}'.format(i)] }}</p>
+        {% endfor %}
+        </div>
+        <div class="data-column">
+            {% for i in range(14, 24) %}
+            <p class="data-item">{{ data['AA{:02d}'.format(i)] }}</p>
+        {% endfor %}
+            <p class="data-item">{{ data.utr }}</p>
+        </div>
+    </div>
+    {% endfor %}
+</body>
+</html>

@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>查询结果</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        .bordered {
+            border: 2px solid black;
+            padding: 10px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+        }
+        .data-column {
+            width: 48%;
+        }
+        .data-item {
+            margin: 5px 0;
+        }
+    </style>
+</head>
+<body>
+    <h2>查询</h2>
+    
+    <form action="/read/fu/" method="post">
+        <label for="utr">流水号:</label>
+        <input type="text" name="utr" id="utr">
+        <button type="submit">查询</button>
+    </form>
+    <form action="/read/fu/time/" method="post">
+        <label for="utr">日期:</label>
+        <input type="text" name="time" id="utr">
+        <button type="submit">查询</button>
+    </form>
+    
+    {% for data in data_list %}
+    <div class="bordered">
+        <div class="data-column">
+            {% for i in range(1, 40) %}
+            <p class="data-item">{{ data['A' + '%02d' % i] }}</p>
+            {% endfor %}
+        </div>
+        <div class="data-column">
+            {% for i in range(40, 80) %}
+            <p class="data-item">{{ data['A' + '%02d' % i] }}</p>
+            {% endfor %}
+            <p class="data-item">{{ data.num }}</p>
+        </div>
+    </div>
+    {% endfor %}
+</body>
+</html>

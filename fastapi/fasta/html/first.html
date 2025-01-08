@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>跳转页面</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f0f0f0;
+        }
+        .container {
+            text-align: center;
+        }
+        .button {
+            display: inline-block;
+            margin: 10px;
+            padding: 15px 25px;
+            font-size: 16px;
+            color: white;
+            background-color: #007BFF;
+            border: none;
+            border-radius: 5px;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        .button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>选择一个页面跳转</h1>
+        <a href="file" class="button">上传文件</a>
+        <a href="read/shou/" class="button" target="_blank">代收查询</a>
+        <a href="read/fu/" class="button" target="_blank">代付查询</a>
+        <a href="update/shou" class="button">代收写入数据库</a>
+        <a href="update/fu" class="button">代付写入数据库</a>
+        <a href="sel_file" class="button">查询已上传文件</a>
+    </div>
+</body>
+</html>

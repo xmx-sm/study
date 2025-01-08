@@ -25,6 +25,15 @@ def add_file(request: Request):
             "request": request,
         },
     )
+@app.get("/",tags=["file"])
+def first(request: Request):
+
+    return templates.TemplateResponse(
+        "first.html",
+        {
+            "request": request,
+        },
+    )
 
 
 # 假设 app 是一个 FastAPI 应用实例

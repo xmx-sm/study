@@ -9,11 +9,12 @@ from models import DaiShou,excel_data,Shou_model,RiZhi
 from tortoise.queryset import Q
 from fastapi.templating import Jinja2Templates
 
+
 # from tortoise import Tortoise, fields, run_async
 
 
 shou_app = APIRouter()
-
+templates = Jinja2Templates(directory="templates")
 filr_path = "api/shou/代收"
 
 async def insert_sql(data,data_day):
@@ -41,12 +42,29 @@ def fu_add_file(file_list: List[UploadFile]):
 #查询相关操作
 #根据时间，卡号查询
 @shou_app.get("/check")
-async def shou_time(card_id : Optional[str] = None,date_time : Optional[str] = None):
+async def shou_time(request: Request,card_id : Optional[str] = None,date_time : Optional[str] = None,utr_id : Optional[str] = None):
     #查询条件
-    if card_id == None and date_time == None:
+    if card_id == None and date_time == None and utr_id == None:
         data = await DaiShou.all()# 查询所有数据 QuerySet: 查询集
         print(data[0].date_time)
-        return {"aaa": data}
+        return templates.TemplateResponse(
+            "shou.html",
+            {"data_list": data,
+             "request": request,
+             }
+        )
+    elif utr_id != None:
+        data_utr = await DaiShou.filter(
+            utr__icontains=utr_id
+        )
+        # print(data_utr[0].AA1)
+        return templates.TemplateResponse(
+            "shou.html",
+            {
+                "request": request,
+                "data_list": data_utr
+            },
+        )
     else:
         conditions_check = []
         if card_id != None:
@@ -57,17 +75,36 @@ async def shou_time(card_id : Optional[str] = None,date_time : Optional[str] = N
         for condition in conditions_check:
             query &= condition
         data = await DaiShou.filter(query)
-        return {"date": data}
-
+        return templates.TemplateResponse(
+            "shou.html",
+            {"data_list": data,
+             "request": request,
+             }
+        )
 #根据utr进行查询
 @shou_app.get("/utr/{utr_id}")
-async def shou_utr_id(utr_id : str):
-    data_utr = await DaiShou.filter(
-        utr__icontains=utr_id
+async def shou_utr_id(request: Request,utr_id : str = None):
+    if utr_id == None:
+        return templates.TemplateResponse(
+        "shou.html",
+        {
+            "request": request,
+        },
     )
-    return {
-        "aaa": data_utr
-        }
+    else:
+        data_utr = await DaiShou.filter(
+            utr__icontains=utr_id
+        )
+        # print(data_utr[0].AA1)
+        return data_utr
+@shou_app.get("/")
+async def shou(request: Request):
+    return templates.TemplateResponse(
+        "shou.html",
+        {
+            "request": request,
+        },
+    )
 #插入数据
 # @shou_app.post("/")
 # async def shou_add(data : Union[str,List[Shou_model]] = None):
@@ -101,7 +138,7 @@ async def shou_insert():
             await RiZhi.create(card_id=str(file_name[0])+str(file_name[1]),date_day=str(file_name[1]),date_time = str(datetime.now()),status = "代收失败")
 
     return {
-        "aaa": 'data_shou'
+        "data": '代收写入完成'
         }
     # data = excel_data().excel_read_data()
     # data : Union[str,List[Shou_model]]
@@ -126,7 +163,7 @@ def shou_utr_delete(utr_id : str):
 
 @shou_app.get("/index")
 async def getall(request : Request):
-    templates = Jinja2Templates(directory="templates")
+    # templates = Jinja2Templates(directory="templates")
     data = await DaiShou.all()
     return templates.TemplateResponse(
         "测试.html",

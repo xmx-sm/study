@@ -59,9 +59,11 @@ filr_path = "api/fu/代付"
 
 async def insert_sql(data,data_day):
     data = [Fu_model(**data_json) for data_json in data]
-
-    await DaiFu.bulk_create(data)
-    await RiZhi.create(card_id=str(data[0].card_id),date_day=str(data_day),date_time=str(data[0].date_time),status = "代付成功")
+    try:
+        await DaiFu.bulk_create(data)
+        await RiZhi.create(card_id=str(data[0].card_id),date_day=str(data_day),date_time=str(data[0].date_time),status = "代付成功")
+    except:
+        await RiZhi.create(card_id=str(data[0].card_id),date_day=str(data_day),date_time=str(data[0].date_time),status = "代付插入失败")
 @fu_app.get("/")
 async def fu(request: Request):
     return templates.TemplateResponse(
@@ -151,25 +153,36 @@ async def fu_insert():
     name_list = os.listdir(file_path)
     list_list = []
     for file_name in name_list:
-        if file_name.endswith(".xlsx"):
-            excel_data.xlsx_revise(file_path,file_name)
-        elif file_name.endswith(".xls"):
-            excel_data.xls_revise(file_path,file_name)
-        elif file_name.endswith(".csv"):
-            excel_data.csv_revise(file_path,file_name)
+        try:
+            if file_name.endswith(".xlsx"):
+                excel_data.xlsx_revise(file_path,file_name)
+            elif file_name.endswith(".xls"):
+                excel_data.xls_revise(file_path,file_name)
+            elif file_name.endswith(".csv"):
+                excel_data.csv_revise(file_path,file_name)
+        except:
+            file_name = file_name.split('.')[0].split('-')
+            await RiZhi.create(card_id=str(file_name[0])+str(file_name[1]),date_day=str(file_name[1]),date_time = str(datetime.now()),status = "代付文件转换失败")
     for file_name in name_list:
         try:
             if file_name.endswith(".xlsx"):
-                data_fu,data_day = excel_data.excel_read_data(file_path,file_name)
-                # print(data_fu[55])
-                await insert_sql(data_fu,data_day)
-                os.remove(file_path+"/"+file_name)
+                data_shou,data_day = excel_data.excel_read_data(file_path,file_name)
+                # print('.......................................')
+                if data_day == 0 :
+                    file_name = file_name.split('.')[0].split('-')
+                    await RiZhi.create(card_id=str(file_name[0])+str(file_name[1]),date_day=str(file_name[1]),date_time = str(datetime.now()),status = "代付分割失败")
+                elif data_day == 1:
+                    file_name = file_name.split('.')[0].split('-')
+                    await RiZhi.create(card_id=str(file_name[0])+str(file_name[1]),date_day=str(file_name[2]),date_time = str(datetime.now()),status = "代付银行未添加")
+                else:
+                    await insert_sql(data_shou,data_day)
+                    os.remove(file_path+"/"+file_name)
         except:
             file_name = file_name.split('.')[0].split('-')
-            await RiZhi.create(card_id=str(file_name[0])+str(file_name[1]),date_day=str(file_name[1]),date_time = str(datetime.now()),status = "代付失败")
+            await RiZhi.create(card_id=str(file_name[0])+str(file_name[1]),date_day=str(file_name[2]),date_time = str(datetime.now()),status = "代付执行失败")
 
     return {
-        "aaa": '代付写入完成'
+        "data": '代付写入完成'
         }
 
 

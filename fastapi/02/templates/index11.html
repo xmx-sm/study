@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>FastAPI + Chart.js Multiple Line Charts Example</title>
+    <!-- 引入 Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .chart-container {
+            width: 770px;
+            height: 770px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>FastAPI + Chart.js 多个折线图示例</h1>
+    <div id="charts"></div>
+
+    <script type="text/javascript">
+        document.addEventListener('DOMContentLoaded', function () {
+            const data = {{ data | safe }};
+            const chartContainer = document.getElementById('charts');
+            
+            // 为每个数据集创建一个新的图表容器，并绘制折线图
+            data.datasets.forEach((dataset, index) => {
+                const canvasId = `myChart${index}`;
+                const canvasElement = document.createElement('canvas');
+                canvasElement.id = canvasId;
+                canvasElement.width = 770;
+                canvasElement.height = 770;
+
+                const containerDiv = document.createElement('div');
+                containerDiv.className = 'chart-container';
+                containerDiv.appendChild(canvasElement);
+                chartContainer.appendChild(containerDiv);
+
+                const ctx = document.getElementById(canvasId).getContext('2d');
+                new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: data.labels,
+                        datasets: [dataset] // 注意这里只传递单个数据集
+                    },
+                    options: {
+                        responsive: false, // 禁用响应式布局以固定尺寸
+                        scales: {
+                            x: {
+                                title: {
+                                    display: true,
+                                    text: 'Month'
+                                }
+                            },
+                            y: {
+                                beginAtZero: false,
+                                title: {
+                                    display: true,
+                                    text: 'Value'
+                                }
+                            }
+                        }
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

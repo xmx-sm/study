@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>FastAPI + Chart.js Responsive Line Chart with Multiple Datasets Example</title>
+    <!-- 引入 Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .chart-container {
+            width: 50%; /* 设置为父级元素宽度的50% */
+            height: auto; /* 高度自动调整 */
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>FastAPI + Chart.js 响应式折线图示例（含多个数据集）</h1>
+    <div class="chart-container">
+        <canvas id="myChart"></canvas>
+    </div>
+
+    <script type="text/javascript">
+        document.addEventListener('DOMContentLoaded', function () {
+            const data = {{ data | safe }};
+            const ctx = document.getElementById('myChart').getContext('2d');
+
+            // 创建一个包含所有数据集的响应式图表
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: data.labels,
+                    datasets: data.datasets // 将所有数据集传递给图表
+                },
+                options: {
+                    responsive: true, // 启用响应式布局
+                    maintainAspectRatio: false, // 禁用保持纵横比以允许宽度和高度独立调整
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Month'
+                            }
+                        },
+                        y: {
+                            beginAtZero: false,
+                            title: {
+                                display: true,
+                                text: 'Value'
+                            }
+                        }
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>

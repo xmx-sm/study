@@ -26,9 +26,9 @@
 </head>
 <body>
     <h2>查询</h2>
-    <form action="/fu/check" method="get">
+    <form action="/shou/check/" method="get">
         utr
-        <input type="text" name="utr" value="">
+        <input type="text" name="utr_id" value="">
         <button type="submit">查询</button>
       </form>
     <!-- <form id="utr_id">
@@ -67,14 +67,38 @@
     {% for data in data_list|default([]) %}
     <div class="bordered">
         <div class="data-column">
-            {% for i in range(1, 14) %}
+            <p class="data-item">{{ data.AA1 }}</p>
+            <p class="data-item">{{ data.AA2 }}</p>
+            <p class="data-item">{{ data.AA3 }}</p>
+            <p class="data-item">{{ data.AA4 }}</p>
+            <p class="data-item">{{ data.AA5 }}</p>
+            <p class="data-item">{{ data.AA6 }}</p>
+            <p class="data-item">{{ data.AA7 }}</p>
+            <p class="data-item">{{ data.AA8 }}</p>
+            <p class="data-item">{{ data.AA9 }}</p>
+            <p class="data-item">{{ data.AA10 }}</p>
+            <p class="data-item">{{ data.AA11 }}</p>
+            <p class="data-item">{{ data.AA12 }}</p>
+            <p class="data-item">{{ data.AA13 }}</p>
+            <p class="data-item">{{ data.AA14 }}</p>
+            <!-- {% for i in range(1, 14) %}
             <p class="data-item">{{ data['AA{:02d}'.format(i)] }}</p>
-        {% endfor %}
+        {% endfor %} -->
         </div>
         <div class="data-column">
-            {% for i in range(14, 24) %}
+            <p class="data-item">{{ data.AA15 }}</p>
+            <p class="data-item">{{ data.AA16 }}</p>
+            <p class="data-item">{{ data.AA17 }}</p>
+            <p class="data-item">{{ data.AA18 }}</p>
+            <p class="data-item">{{ data.AA19 }}</p>
+            <p class="data-item">{{ data.AA20 }}</p>
+            <p class="data-item">{{ data.AA21 }}</p>
+            <p class="data-item">{{ data.AA22 }}</p>
+            <p class="data-item">{{ data.AA23 }}</p>
+            <p class="data-item">{{ data.AA24 }}</p>
+            <!-- {% for i in range(14, 24) %}
             <p class="data-item">{{ data['AA{:02d}'.format(i)] }}</p>
-        {% endfor %}
+        {% endfor %} -->
             <p class="data-item">{{ data.utr }}</p>
         </div>
     </div>

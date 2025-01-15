@@ -196,32 +196,55 @@ class excel_data():
         df.to_excel(str(file_path) + '/' + str(file_new_name),index=False)
         os.remove(str(file_path) + '/' + str(file_name))
     def excel_read_data(file_path,file_name):
-        df = pd.read_excel(str(file_path) + '/' + str(file_name))
+        file_path_name = str(file_path) + '/' + str(file_name)
+        df = pd.read_excel(file_path_name)
         data = df.to_json(orient='records')
         data_json = json.loads(data)
         file_name_sp = str(file_name).split('.')[0]
-        file_new_name = file_name_sp.split('-')
-        # print(len(data_json))
-        if file_new_name[0].casefold() == 'BOM'.casefold():
-            datetime_time = datetime.now()
-            for i in range(len(data_json)):
-                # print(data_json[i])
-                data_json[i]['utr'] = data_json[i]["AA3"]
-                data_json[i]['date_time'] = datetime_time
-                data_json[i]['card_id'] = str(file_new_name[0])+str(file_new_name[1])
+        try:
+            file_new_name = file_name_sp.split('-')
+            # print(len(data_json))
+            if file_new_name[0].casefold() == 'BOM'.casefold():
+                datetime_time = datetime.now()
+                for i in range(len(data_json)):
+                    data_json[i]['utr'] = data_json[i]["AA3"]+"("+str(file_new_name[0])+str(file_new_name[1])+")"
+                    data_json[i]['date_time'] = datetime_time
+                    data_json[i]['card_id'] = str(file_new_name[0])+str(file_new_name[1])
 
-        elif file_new_name[0].casefold() == 'IOB'.casefold():
-            datetime_time = datetime.now()
-            for i in range(len(data_json)):
-                data_json[i]['utr'] = data_json[i]["AA3"]
-                data_json[i]['date_time'] = datetime_time
-                data_json[i]['card_id'] = str(file_new_name[0])+str(file_new_name[1])
-        else:
-            for i in range(len(data_json)):
-                data_json[i]['card_id'] = str(file_new_name[0])+str(file_new_name[1])
+            elif file_new_name[0].casefold() == 'IOB'.casefold():
+                datetime_time = datetime.now()
+                for i in range(len(data_json)):
+                    data_json[i]['utr'] = data_json[i]["AA3"]+"("+str(file_new_name[0])+str(file_new_name[1])+")"
+                    data_json[i]['date_time'] = datetime_time
+                    data_json[i]['card_id'] = str(file_new_name[0])+str(file_new_name[1])
+            elif file_new_name[0].casefold() == 'KBL'.casefold():
+                datetime_time = datetime.now()
+                for i in range(len(data_json)):
+                    data_json[i]['utr'] = data_json[i]["AA5"]+"("+str(file_new_name[0])+str(file_new_name[1])+")"
+                    data_json[i]['date_time'] = datetime_time
+                    data_json[i]['card_id'] = str(file_new_name[0])+str(file_new_name[1])
+            elif file_new_name[0].casefold() == 'BAN'.casefold():
+                datetime_time = datetime.now()
+                for i in range(len(data_json)):
+                    data_json[i]['utr'] = data_json[i]["AA20"]+"("+str(file_new_name[0])+str(file_new_name[1])+")"
+                    data_json[i]['date_time'] = datetime_time
+                    data_json[i]['card_id'] = str(file_new_name[0])+str(file_new_name[1])
+            elif file_new_name[0].casefold() == 'AU'.casefold():
+                datetime_time = datetime.now()
+                for i in range(len(data_json)):
+                    data_json[i]['utr'] = data_json[i]["AA3"]+"("+str(file_new_name[0])+str(file_new_name[1])+")"
+                    data_json[i]['date_time'] = datetime_time
+                    data_json[i]['card_id'] = str(file_new_name[0])+str(file_new_name[1])
+            else:
+                datetime_time = datetime.now()
+                file_new_name[2] = 1
+                # for i in range(len(data_json)):
+                #     data_json[i]['card_id'] = str(file_new_name[0])+str(file_new_name[1])
 
-        return data_json,file_new_name[2]
 
+            return data_json,file_new_name[2]
+        except:
+            return data_json,0
 
 class DaiShou(Model):
     # id = fields.IntField(pk = True)

@@ -65,6 +65,24 @@
             text-decoration: none;
             cursor: pointer;
         }
+
+        /* 解决文件名过长的问题 */
+        .file-info p {
+            max-width: 200px; /* 根据实际需求调整 */
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        /* 当鼠标悬停在被截断的文件名上时显示完整文件名 */
+        .file-info p:hover {
+            overflow: visible;
+            white-space: normal;
+            word-wrap: break-word;
+            background-color: #f9f9f9;
+            padding: 5px;
+            z-index: 1000;
+            position: absolute;
+        }
     </style>
 </head>
 <body>
@@ -120,9 +138,9 @@
                 // 获取不带扩展名的文件名和文件扩展名
                 const fileNameWithoutExt = files[i].name.replace(/\.[^/.]+$/, "");
                 const fileExt = files[i].name.split('.').pop();
-                // 构建包含旧文件名和新文件名输入框的HTML
+                // 构建包含旧文件名和新文件名输入框的HTML，并添加 title 属性
                 formContent += `<div class="file-info">
-                    <p>${files[i].name}</p>
+                    <p title="${files[i].name}">${files[i].name}</p>
                     <input type="text" class="file-name-input" placeholder="请输入新文件名（不包括扩展名）" data-index="${i}" value="${fileNameWithoutExt}">
                     <span>.${fileExt}</span>
                 </div>`;

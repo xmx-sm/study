@@ -19,10 +19,11 @@ filr_path = "api/shou/代收"
 
 async def insert_sql(data,data_day):
     data = [Shou_model(**data_json) for data_json in data]
-
-    await DaiShou.bulk_create(data)
-    await RiZhi.create(card_id=str(data[0].card_id),date_day=str(data_day),date_time=str(data[0].date_time),status = "代收成功")
-
+    try:
+        await DaiShou.bulk_create(data)
+        await RiZhi.create(card_id=str(data[0].card_id),date_day=str(data_day),date_time=str(data[0].date_time),status = "代收成功")
+    except:
+        await RiZhi.create(card_id=str(data[0].card_id),date_day=str(data_day),date_time=str(data[0].date_time),status = "代收插入失败")
 @shou_app.post("/add/file")
 def fu_add_file(file_list: List[UploadFile]):
     file_list_name = []
@@ -44,9 +45,10 @@ def fu_add_file(file_list: List[UploadFile]):
 @shou_app.get("/check")
 async def shou_time(request: Request,card_id : Optional[str] = None,date_time : Optional[str] = None,utr_id : Optional[str] = None):
     #查询条件
+
     if card_id == None and date_time == None and utr_id == None:
         data = await DaiShou.all()# 查询所有数据 QuerySet: 查询集
-        print(data[0].date_time)
+
         return templates.TemplateResponse(
             "shou.html",
             {"data_list": data,
@@ -68,8 +70,10 @@ async def shou_time(request: Request,card_id : Optional[str] = None,date_time : 
     else:
         conditions_check = []
         if card_id != None:
+
             conditions_check.append(Q(card_id__icontains=card_id))
         if date_time != None:
+
             conditions_check.append(Q(date_time__icontains=date_time))
         query = Q()
         for condition in conditions_check:
@@ -95,7 +99,6 @@ async def shou_utr_id(request: Request,utr_id : str = None):
         data_utr = await DaiShou.filter(
             utr__icontains=utr_id
         )
-        # print(data_utr[0].AA1)
         return data_utr
 @shou_app.get("/")
 async def shou(request: Request):
@@ -120,22 +123,33 @@ async def shou_insert():
     name_list = os.listdir(file_path)
     list_list = []
     for file_name in name_list:
-        if file_name.endswith(".xlsx"):
-            excel_data.xlsx_revise(file_path,file_name)
-        elif file_name.endswith(".xls"):
-            excel_data.xls_revise(file_path,file_name)
-        elif file_name.endswith(".csv"):
-            excel_data.csv_revise(file_path,file_name)
+        try:
+            if file_name.endswith(".xlsx"):
+                excel_data.xlsx_revise(file_path,file_name)
+            elif file_name.endswith(".xls"):
+                excel_data.xls_revise(file_path,file_name)
+            elif file_name.endswith(".csv"):
+                excel_data.csv_revise(file_path,file_name)
+        except:
+            file_name = file_name.split('.')[0].split('-')
+            await RiZhi.create(card_id=str(file_name[0])+str(file_name[1]),date_day=str(file_name[2]),date_time = str(datetime.now()),status = "代收文件转换失败")
     for file_name in name_list:
         try:
             if file_name.endswith(".xlsx"):
                 data_shou,data_day = excel_data.excel_read_data(file_path,file_name)
                 # print('.......................................')
-                await insert_sql(data_shou,data_day)
-                os.remove(file_path+"/"+file_name)
+                if data_day == 0 :
+                    file_name = file_name.split('.')[0].split('-')
+                    await RiZhi.create(card_id=str(file_name[0])+str(file_name[1]),date_day=str(file_name[2]),date_time = str(datetime.now()),status = "代收文件分割失败")
+                elif data_day == 1:
+                    file_name = file_name.split('.')[0].split('-')
+                    await RiZhi.create(card_id=str(file_name[0])+str(file_name[1]),date_day=str(file_name[2]),date_time = str(datetime.now()),status = "代收银行未添加")
+                else:
+                    await insert_sql(data_shou,data_day)
+                    os.remove(file_path+"/"+file_name)
         except:
             file_name = file_name.split('.')[0].split('-')
-            await RiZhi.create(card_id=str(file_name[0])+str(file_name[1]),date_day=str(file_name[1]),date_time = str(datetime.now()),status = "代收失败")
+            await RiZhi.create(card_id=str(file_name[0])+str(file_name[1]),date_day=str(file_name[2]),date_time = str(datetime.now()),status = "代收执行失败")
 
     return {
         "data": '代收写入完成'

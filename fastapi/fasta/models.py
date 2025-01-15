@@ -176,7 +176,8 @@ class excel_data():
         df.rename(columns=new_name,inplace=True)
         df.to_excel(str(file_path) + '/' + str(file_name),index=False)
     def csv_revise(file_path,file_name):
-        df = pd.read_csv(str(file_path) + '/' + str(file_name))
+        default_column_names = [f'Column_{i}' for i in range(15)]
+        df = pd.read_csv(str(file_path) + '/' + str(file_name),names=default_column_names, header=None)
         old_name = df.columns.to_list()
         new_name = {}
         for i in range(len(old_name)):
@@ -207,33 +208,39 @@ class excel_data():
             if file_new_name[0].casefold() == 'BOM'.casefold():
                 datetime_time = datetime.now()
                 for i in range(len(data_json)):
-                    data_json[i]['utr'] = data_json[i]["AA3"]+"("+str(file_new_name[0])+str(file_new_name[1])+")"
-                    data_json[i]['date_time'] = datetime_time
+                    data_json[i]['utr'] = str(data_json[i]["AA3"])+"("+str(file_new_name[0])+str(file_new_name[1])+")"
+                    data_json[i]['date_time'] = str(datetime_time) + "("+str(file_new_name[2])+")"
                     data_json[i]['card_id'] = str(file_new_name[0])+str(file_new_name[1])
 
             elif file_new_name[0].casefold() == 'IOB'.casefold():
                 datetime_time = datetime.now()
                 for i in range(len(data_json)):
-                    data_json[i]['utr'] = data_json[i]["AA3"]+"("+str(file_new_name[0])+str(file_new_name[1])+")"
-                    data_json[i]['date_time'] = datetime_time
+                    data_json[i]['utr'] = str(data_json[i]["AA3"])+"("+str(file_new_name[0])+str(file_new_name[1])+")"
+                    data_json[i]['date_time'] = datetime_time + "("+str(file_new_name[2])+")"
                     data_json[i]['card_id'] = str(file_new_name[0])+str(file_new_name[1])
             elif file_new_name[0].casefold() == 'KBL'.casefold():
                 datetime_time = datetime.now()
                 for i in range(len(data_json)):
-                    data_json[i]['utr'] = data_json[i]["AA5"]+"("+str(file_new_name[0])+str(file_new_name[1])+")"
-                    data_json[i]['date_time'] = datetime_time
+                    data_json[i]['utr'] = str(data_json[i]["AA5"])+"("+str(file_new_name[0])+str(file_new_name[1])+")"
+                    data_json[i]['date_time'] = str(datetime_time) + "("+str(file_new_name[2])+")"
                     data_json[i]['card_id'] = str(file_new_name[0])+str(file_new_name[1])
             elif file_new_name[0].casefold() == 'BAN'.casefold():
                 datetime_time = datetime.now()
                 for i in range(len(data_json)):
-                    data_json[i]['utr'] = data_json[i]["AA20"]+"("+str(file_new_name[0])+str(file_new_name[1])+")"
-                    data_json[i]['date_time'] = datetime_time
+                    data_json[i]['utr'] =str( data_json[i]["AA20"])+"("+str(file_new_name[0])+str(file_new_name[1])+")"
+                    data_json[i]['date_time'] = str(datetime_time) + "("+str(file_new_name[2])+")"
                     data_json[i]['card_id'] = str(file_new_name[0])+str(file_new_name[1])
             elif file_new_name[0].casefold() == 'AU'.casefold():
                 datetime_time = datetime.now()
                 for i in range(len(data_json)):
-                    data_json[i]['utr'] = data_json[i]["AA3"]+"("+str(file_new_name[0])+str(file_new_name[1])+")"
-                    data_json[i]['date_time'] = datetime_time
+                    data_json[i]['utr'] = str(data_json[i]["AA3"])+"("+str(file_new_name[0])+str(file_new_name[1])+")"
+                    data_json[i]['date_time'] = str(datetime_time) + "("+str(file_new_name[2])+")"
+                    data_json[i]['card_id'] = str(file_new_name[0])+str(file_new_name[1])
+            elif file_new_name[0].casefold() == 'CAN'.casefold():
+                datetime_time = datetime.now()
+                for i in range(len(data_json)):
+                    data_json[i]['utr'] = str(data_json[i]["AA3"])+"("+str(file_new_name[0])+str(file_new_name[1])+")"
+                    data_json[i]['date_time'] = str(datetime_time) + "("+str(file_new_name[2])+")"
                     data_json[i]['card_id'] = str(file_new_name[0])+str(file_new_name[1])
             else:
                 datetime_time = datetime.now()
@@ -400,4 +407,4 @@ class RiZhi(Model):
     status = fields.TextField(description='状态')
 
 if __name__ == '__main__':
-    print(datetime.now())
+    excel_data.csv_revise('./api/shou/代收','can-690-0114.csv')

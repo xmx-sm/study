@@ -123,16 +123,16 @@ async def shou_insert():
     name_list = os.listdir(file_path)
     list_list = []
     for file_name in name_list:
-        try:
+        # try:
             if file_name.endswith(".xlsx"):
                 excel_data.xlsx_revise(file_path,file_name)
             elif file_name.endswith(".xls"):
                 excel_data.xls_revise(file_path,file_name)
             elif file_name.endswith(".csv"):
                 excel_data.csv_revise(file_path,file_name)
-        except:
-            file_name = file_name.split('.')[0].split('-')
-            await RiZhi.create(card_id=str(file_name[0])+str(file_name[1]),date_day=str(file_name[2]),date_time = str(datetime.now()),status = "代收文件转换失败")
+        # except:
+        #     file_name = file_name.split('.')[0].split('-')
+        #     await RiZhi.create(card_id=str(file_name[0])+str(file_name[1]),date_day=str(file_name[2]),date_time = str(datetime.now()),status = "代收文件转换失败")
     for file_name in name_list:
         try:
             if file_name.endswith(".xlsx"):
@@ -146,7 +146,7 @@ async def shou_insert():
                     await RiZhi.create(card_id=str(file_name[0])+str(file_name[1]),date_day=str(file_name[2]),date_time = str(datetime.now()),status = "代收银行未添加")
                 else:
                     await insert_sql(data_shou,data_day)
-                    os.remove(file_path+"/"+file_name)
+                    # os.remove(file_path+"/"+file_name)
         except:
             file_name = file_name.split('.')[0].split('-')
             await RiZhi.create(card_id=str(file_name[0])+str(file_name[1]),date_day=str(file_name[2]),date_time = str(datetime.now()),status = "代收执行失败")
